@@ -1,10 +1,10 @@
 using UnityEngine;
-using System.Collections; // Necesario para usar Coroutines (para el fade out)
+using System.Collections;
 
 [RequireComponent(typeof(CharacterController), typeof(AudioSource))]
 public class PlayerMovement : MonoBehaviour
 {
-    [Header("Movement")]
+    [Header("Movimiento")]
     public Transform cameraTransform;
     public float walkSpeed = 3f;
     public float runSpeed = 6f;
@@ -15,25 +15,25 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 velocity;
     private float xRotation = 0f;
 
-    [Header("Footsteps (Loop)")]
-    public AudioClip footstepsLoop;  // único archivo largo de pasos
+    [Header("Pisadas Naturales")]
+    public AudioClip[] footstepClips; 
     private AudioSource audioSource;
-    
-    // Control del Fade Out
-    public float fadeOutTime = 0.2f; // Tiempo que tarda el sonido en desvanecerse (en segundos)
-    private Coroutine fadeOutCoroutine; // Referencia a la corutina activa
+    public float walkStepBase = 0.5f;    
+    public float runStepBase = 0.35f;     
+    private float nextStepTime;         
+    private bool leftFoot = true;
+    private int currentFootstepIndex = 0;    
 
     void Start()
     {
         controller = GetComponent<CharacterController>();
         audioSource = GetComponent<AudioSource>();
 
-        // Configuración del AudioSource
-        audioSource.clip = footstepsLoop;
-        audioSource.loop = true;          // repetir en bucle
-        audioSource.playOnAwake = false;  // no sonar al iniciar
-        audioSource.spatialBlend = 0f;
-        audioSource.volume = 0.7f;   
+        // Configuración del audio
+        audioSource.playOnAwake = false;
+        audioSource.loop = false;
+        audioSource.spatialBlend = 0f; 
+        audioSource.volume = 0.8f;
     }
 
     void Update()
@@ -43,6 +43,9 @@ public class PlayerMovement : MonoBehaviour
         HandleFootsteps();
     }
 
+    // ----------------------
+    // Control de Cámara
+    // ----------------------
     void HandleLook()
     {
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
@@ -51,10 +54,11 @@ public class PlayerMovement : MonoBehaviour
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
-        if (cameraTransform) cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        if (cameraTransform != null)
+            cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+
         transform.Rotate(Vector3.up * mouseX);
     }
-
     void HandleMovement()
     {
         float speed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : walkSpeed;
@@ -62,74 +66,54 @@ public class PlayerMovement : MonoBehaviour
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
 
-        // 1. Calcular el movimiento horizontal
         Vector3 horizontalMove = transform.right * x + transform.forward * z;
         Vector3 finalHorizontalVelocity = horizontalMove * speed;
-        
-        // 2. Manejar la gravedad (movimiento vertical)
+
         if (controller.isGrounded && velocity.y < 0)
             velocity.y = -2f; 
-        
+
         velocity.y += gravity * Time.deltaTime;
 
-        // 3. COMBINAR movimiento horizontal y vertical en una sola llamada a controller.Move()
-        // ¡Esta es la corrección crucial que soluciona el registro de velocidad!
-        controller.Move((finalHorizontalVelocity + velocity) * Time.deltaTime); 
+        controller.Move((finalHorizontalVelocity + velocity) * Time.deltaTime);
     }
 
+    // ----------------------
+    // Sonido de Pisadas
+    // ----------------------
     void HandleFootsteps()
     {
-        // Usamos controller.velocity después de la corrección en HandleMovement()
         Vector3 horizontalVelocity = new Vector3(controller.velocity.x, 0, controller.velocity.z);
+        float speed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : walkSpeed;
 
-        if (horizontalVelocity.magnitude > 0.01f) // 0.01f es más seguro que 0f
+        if (horizontalVelocity.magnitude > 0.2f && controller.isGrounded)
         {
-            if (!audioSource.isPlaying)
+            if (Time.time >= nextStepTime)
             {
-                // Si estamos reproduciendo, cancelamos cualquier intento previo de FadeOut.
-                if (fadeOutCoroutine != null)
-                {
-                    StopCoroutine(fadeOutCoroutine);
-                    fadeOutCoroutine = null;
-                }
-
-                // Aseguramos que el volumen esté al máximo antes de reproducir.
-                audioSource.volume = 0.7f; 
-                Debug.Log("Reproduciendo pasos...");
-                audioSource.Play();
-            }
-        }
-        else
-        {
-            // Solo iniciamos el Fade Out si el sonido está sonando y si no hay un fade out ya activo
-            if (audioSource.isPlaying && fadeOutCoroutine == null)
-            {
-                Debug.Log("Iniciando desvanecimiento (Fade Out)");
-                fadeOutCoroutine = StartCoroutine(FadeOutStop(audioSource, fadeOutTime));
+                PlayNaturalFootstep();
+                float baseInterval = (speed == runSpeed ? runStepBase : walkStepBase);
+                nextStepTime = Time.time + baseInterval * Random.Range(0.9f, 1.1f); // ligera variación natural
             }
         }
     }
-    
-    // Corutina para desvanecer el volumen y luego detener el sonido
-    IEnumerator FadeOutStop(AudioSource audioSource, float duration)
+
+    // ----------------------
+    // Reproduce una Pisada Natural
+    // ----------------------
+    void PlayNaturalFootstep()
     {
-        float startVolume = audioSource.volume;
-        float startTime = Time.time;
+        if (footstepClips == null || footstepClips.Length == 0)
+            return;
 
-        // Reduce el volumen gradualmente hasta 0
-        while (audioSource.volume > 0)
-        {
-            float elapsed = Time.time - startTime;
-            float newVolume = Mathf.Lerp(startVolume, 0f, elapsed / duration);
-            audioSource.volume = newVolume;
-            yield return null; // Espera al siguiente frame
-        }
+        AudioClip clip = footstepClips[currentFootstepIndex];
+        currentFootstepIndex = (currentFootstepIndex + 1) % footstepClips.Length;
 
-        // Una vez que el volumen es 0, detenemos y restauramos el volumen
-        audioSource.Stop();
-        audioSource.volume = 0.7f; 
-        
-        fadeOutCoroutine = null; // Resetea la corutina para que se pueda iniciar de nuevo
-        Debug.Log("Se detuvo el sonido después del Fade Out");
+        audioSource.panStereo = leftFoot ? -0.15f : 0.15f;
+        leftFoot = !leftFoot;
+
+        audioSource.pitch = Random.Range(0.98f, 1.02f);
+        audioSource.volume = Random.Range(0.5f, 0.6f);
+
+        // Reproduce el clip
+        audioSource.PlayOneShot(clip);
     }
 }
