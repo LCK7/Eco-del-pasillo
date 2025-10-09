@@ -28,8 +28,6 @@ public class PlayerMovement : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         audioSource = GetComponent<AudioSource>();
-
-        // Configuración del audio
         audioSource.playOnAwake = false;
         audioSource.loop = false;
         audioSource.spatialBlend = 0f; 
@@ -43,9 +41,6 @@ public class PlayerMovement : MonoBehaviour
         HandleFootsteps();
     }
 
-    // ----------------------
-    // Control de Cámara
-    // ----------------------
     void HandleLook()
     {
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
@@ -77,9 +72,6 @@ public class PlayerMovement : MonoBehaviour
         controller.Move((finalHorizontalVelocity + velocity) * Time.deltaTime);
     }
 
-    // ----------------------
-    // Sonido de Pisadas
-    // ----------------------
     void HandleFootsteps()
     {
         Vector3 horizontalVelocity = new Vector3(controller.velocity.x, 0, controller.velocity.z);
@@ -95,10 +87,6 @@ public class PlayerMovement : MonoBehaviour
             }
         }
     }
-
-    // ----------------------
-    // Reproduce una Pisada Natural
-    // ----------------------
     void PlayNaturalFootstep()
     {
         if (footstepClips == null || footstepClips.Length == 0)
@@ -113,7 +101,6 @@ public class PlayerMovement : MonoBehaviour
         audioSource.pitch = Random.Range(0.98f, 1.02f);
         audioSource.volume = Random.Range(0.5f, 0.6f);
 
-        // Reproduce el clip
         audioSource.PlayOneShot(clip);
     }
 }

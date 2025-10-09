@@ -2,30 +2,25 @@ using UnityEngine;
 
 public class ProximityTrigger : MonoBehaviour
 {
-    public AudioSource sonido; 
-    public Animator animPuerta; 
+    public AudioSource sonido;
+    public Animator animPuerta;
     public Collider bloqueoPasillo;
-    private bool yaActivado = false; 
+    private bool abierta = false; // Estado actual
 
     private void OnTriggerEnter(Collider other)
     {
-        if (yaActivado) return;
-
         if (other.CompareTag("Player"))
         {
-            yaActivado = true;
-
+            abierta = !abierta; 
 
             if (sonido != null)
                 sonido.Play();
 
-
             if (animPuerta != null)
-                animPuerta.SetTrigger("AbrirParcial");
-
+                animPuerta.SetBool("Abierta", abierta);
 
             if (bloqueoPasillo != null)
-                bloqueoPasillo.enabled = true;
+                bloqueoPasillo.enabled = abierta; 
         }
     }
 }

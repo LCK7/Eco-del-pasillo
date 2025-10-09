@@ -21306,6 +21306,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: de1712620d1ab4846a5fc78efd6ecc1c, type: 3}
+--- !u!65 &1427404168 stripped
+BoxCollider:
+  m_CorrespondingSourceObject: {fileID: 900752940832908046, guid: 12178a55f053c7440b4649b845234733, type: 3}
+  m_PrefabInstance: {fileID: 786277424}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1431081840 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4410746672011927835, guid: 6727ad94845a00f4c8c1e26cc10fa2d0, type: 3}
@@ -29608,7 +29613,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sonido: {fileID: 26736830}
   animPuerta: {fileID: 1451937600}
-  bloqueoPasillo: {fileID: 0}
+  bloqueoPasillo: {fileID: 1427404168}
 --- !u!4 &2038948624 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 098c0ef3b2013ca44a4c45d2ab223a00, type: 3}

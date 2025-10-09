@@ -34,15 +34,13 @@ public class PTDoorLoopFixed : MonoBehaviour
 
         puedeTeletransportar = false;
 
-        // Root del jugador (por si el collider que entró es un child)
+
         Transform playerTriggerTransform = otherCollider.transform;
         Transform playerRoot = playerTriggerTransform.root;
 
-        // Offset: queremos que el punto que activó el trigger quede exactamente en 'destino'
         Vector3 pointOffset = playerTriggerTransform.position - playerRoot.position;
         Vector3 targetRootPos = destino.position - pointOffset + extraOffset;
 
-        // Detectar componentes físicos
         CharacterController cc = playerRoot.GetComponent<CharacterController>();
         Rigidbody rb = playerRoot.GetComponent<Rigidbody>();
 
@@ -51,32 +49,25 @@ public class PTDoorLoopFixed : MonoBehaviour
             Debug.Log($"[PTDoorLoopFixed] Teleport {playerRoot.name} -> targetRootPos {targetRootPos} | destino {destino.position} | pointOffset {pointOffset}", this);
         }
 
-        // Desactivar CharacterController para evitar que la colisión lo empuje
         if (cc != null) cc.enabled = false;
 
-        // Si tiene Rigidbody, resetear velocidad y colocar con rb.position (teleport)
         if (rb != null)
         {
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
-
-            // Mover física directamente (teletransporte)
             rb.position = targetRootPos;
             rb.rotation = destino.rotation;
         }
         else
         {
-            // Mover la raíz del jugador
             playerRoot.position = targetRootPos;
             playerRoot.rotation = destino.rotation;
         }
 
-        // Esperar un frame para que física/cámaras se actualicen
         yield return null;
 
         if (cc != null) cc.enabled = true;
 
-        // Pequeña espera para evitar retriggers inmediatos
         yield return new WaitForSeconds(cooldown);
 
         puedeTeletransportar = true;

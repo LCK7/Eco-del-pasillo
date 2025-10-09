@@ -26,7 +26,6 @@ public class LoopEffects : MonoBehaviour
                 ghost.SetActive(false);
                 break;
             case 2:
-                // hacer que la radio suene y empezar parpadeo
                 if (radio) radio.Play();
                 StartFlicker(true);
                 break;
@@ -34,10 +33,8 @@ public class LoopEffects : MonoBehaviour
                 ghost.SetActive(true);
                 break;
             case 4:
-                // intensificar efectos
                 break;
             case 5:
-                // final
                 break;
         }
     }

@@ -16,7 +16,6 @@ public class Interactor : MonoBehaviour
             {
                 if (mb is IInteractable interactable)
                 {
-                    // Aquí puedes mostrar texto en UI: interactable.GetInteractText()
                     if (Input.GetKeyDown(KeyCode.E))
                     {
                         interactable.Interact();
