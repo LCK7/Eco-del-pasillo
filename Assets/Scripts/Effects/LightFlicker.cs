@@ -1,12 +1,16 @@
 using UnityEngine;
 
-[RequireComponent(typeof(Light))]
 public class LightFlicker : MonoBehaviour
 {
-    public float minIntensity = 0.2f;
-    public float maxIntensity = 1.2f;
-    public float speed = 1f;
+    public float minIntensity = 0f;
+    public float maxIntensity = 5f;
+
+    public float flickerSpeed = 0.1f;      // Velocidad de cambios bruscos
+    public float chaos = 2f;               // Cuánto caos agregar (mientras más, más brutal)
+    public float blackoutChance = 0.1f;    // Probabilidad de apagones cortos (0.1 = 10%)
+
     private Light lt;
+    private float timer;
 
     void Start()
     {
@@ -15,6 +19,24 @@ public class LightFlicker : MonoBehaviour
 
     void Update()
     {
-        lt.intensity = Mathf.Lerp(minIntensity, maxIntensity, Mathf.PerlinNoise(Time.time * speed, 0f));
+        timer -= Time.deltaTime;
+
+        if (timer <= 0f)
+        {
+            timer = flickerSpeed;
+
+            // Apagón aleatorio breve
+            if (Random.value < blackoutChance)
+            {
+                lt.intensity = 0f;
+                return;
+            }
+
+            // Cambio de intensidad brusco
+            float chaotic = Random.Range(minIntensity, maxIntensity)
+                            + Random.Range(-chaos, chaos);
+
+            lt.intensity = Mathf.Clamp(chaotic, 0f, maxIntensity);
+        }
     }
 }

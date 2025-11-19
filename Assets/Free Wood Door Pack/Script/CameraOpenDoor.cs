@@ -3,7 +3,7 @@ using DoorScript; // Necesario para acceder al script Door
 
 namespace CameraDoorScript
 {
-    // Cambia el nombre de este script a PlayerInteractor.cs para mejor claridad
+    // PlayerInteractor: Interacción con puertas solamente
     public class PlayerInteractor : MonoBehaviour 
     {
         public float DistanceInteraction = 3f; // Distancia para interactuar
@@ -15,49 +15,25 @@ namespace CameraDoorScript
             bool hitObjectOfInterest = false;
 
             // Lanza el rayo hacia adelante desde la posición de la cámara
-            if (Physics.Raycast (transform.position, transform.forward, out hit, DistanceInteraction)) 
+            if (Physics.Raycast(transform.position, transform.forward, out hit, DistanceInteraction)) 
             {
-                // **1. Detección de Puerta**
-                if (hit.transform.GetComponent<DoorScript.Door> ()) 
-                {
-                    hitObjectOfInterest = true;
-                    
-                    if (Input.GetKeyDown(KeyCode.E))
-                        hit.transform.GetComponent<DoorScript.Door> ().OpenDoor();
-                }
-                // **2. Detección de Linterna (Pickup)**
-                else if (hit.transform.CompareTag("Flashlight")) 
+                // **Detección de Puerta**
+                Door door = hit.transform.GetComponent<Door>();
+                if (door != null) 
                 {
                     hitObjectOfInterest = true;
 
                     if (Input.GetKeyDown(KeyCode.E))
-                    {
-                        var flashlightPickup = hit.transform.GetComponent<FlashlightPickup>();
-                        if (flashlightPickup != null)
-                        {
-                            // Llamamos a la función pública Pickup() en el objeto linterna
-                            flashlightPickup.Pickup(); 
-                            
-                            // Ocultamos el mensaje después de la recogida
-                            textUIMessage.SetActive(false); 
-                        }
-                    }
+                        door.OpenDoor();
                 }
 
                 // Mostrar UI si golpeamos un objeto de interés
-                if (hitObjectOfInterest)
-                {
-                    textUIMessage.SetActive (true);
-                }
-                else
-                {
-                    textUIMessage.SetActive (false);
-                }
+                textUIMessage.SetActive(hitObjectOfInterest);
             }
             else
             {
                 // No golpeamos nada, ocultar UI
-                textUIMessage.SetActive (false);
+                textUIMessage.SetActive(false);
             }
         }
     }
