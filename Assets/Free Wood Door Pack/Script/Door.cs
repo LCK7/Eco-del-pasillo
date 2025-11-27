@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 namespace DoorScript
 {
 	[RequireComponent(typeof(AudioSource))]
@@ -13,6 +14,7 @@ public class Door : MonoBehaviour {
     float DoorCloseAngle = 0.0f;
 	public AudioSource asource;
 	public AudioClip openDoor,closeDoor;
+	public UnityEvent OndoorOpen;
 	void Start () {
 		asource = GetComponent<AudioSource> ();
 	}
@@ -35,6 +37,7 @@ public class Door : MonoBehaviour {
 		open =!open;
 		asource.clip = open?openDoor:closeDoor;
 		asource.Play ();
+		OndoorOpen.Invoke();
 	}
 }
 }
